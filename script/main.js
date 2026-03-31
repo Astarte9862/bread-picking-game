@@ -1,9 +1,8 @@
 const tl = require("@akashic-extension/akashic-timeline");
 
 exports.main = (param) => {
-    const game = g.game; // よくアクセスするため変数に保持しておく
+    const game = g.game;
 
-    // オープニング用シーンの作成
     const openingScene = new g.Scene({
         game,
         assetPaths: [
@@ -50,14 +49,13 @@ exports.main = (param) => {
         ],
     });
     const timeline = new tl.Timeline(scene);
-    let time = 80; // 制限時間
+    let time = 80;
     if (param.sessionParameter.totalTimeLimit) {
-        time = param.sessionParameter.totalTimeLimit; // セッションパラメータで制限時間が指定されたらその値を使用
+        time = param.sessionParameter.totalTimeLimit;
     }
 
     let combo = 0;
 
-    // ニコ生ゲームのランキングモードでは g.game.vars.gameState.score の値がスコアとして扱われる
     game.vars.gameState = { score: 0 };
     scene.onLoad.add(() => {
         const seFinishAsset = scene.asset.getAudio("/assets/se/se_finish");
@@ -65,7 +63,6 @@ exports.main = (param) => {
         const sePicoAsset = scene.asset.getAudio("/assets/se/se_pico");
         const sePico = game.audio.create(sePicoAsset);
 
-        // 背景を作成
         const background = new g.FilledRect({
             scene,
             cssColor: "#fff",
@@ -73,18 +70,16 @@ exports.main = (param) => {
             y: 0,
             width: game.width,
             height: game.height,
-            opacity: 0.5, // 透過度 50% で表示
+            opacity: 0.5,
         });
-        scene.append(background); // 背景をシーンに追加
+        scene.append(background);
 
-        // スコア用のビットマップフォントの作成
         const font = new g.BitmapFont({
             scene,
             src: scene.asset.getImage("/assets/fonts/font-number.png"),
             glyphInfo: scene.asset.getJSONContent("/assets/fonts/font-number_glyphs.json"),
         });
 
-        // スコア表示エンティティの作成
         const scoreLabel = new g.Label({
             scene,
             font,
@@ -97,10 +92,8 @@ exports.main = (param) => {
         });
         scene.append(scoreLabel);
 
-        // 残り時間 (合計時間から15秒の猶予を持たせる)
         let remainingTime = time - 20;
 
-        // タイマー表示エンティティの作成
         const timerLabel = new g.Label({
             scene,
             font,
@@ -120,7 +113,6 @@ exports.main = (param) => {
             glyphInfo: scene.asset.getJSONContent("/assets/fonts/font-number_glyphs.json"),
         });
 
-        // スコア表示エンティティの作成
         const comboLabel = new g.Label({
             scene,
             font,
@@ -133,13 +125,11 @@ exports.main = (param) => {
         });
         scene.append(comboLabel);
 
-        // スコア表示を更新する
         function updateScoreLabel() {
             scoreLabel.text = `${game.vars.gameState.score}`;
             scoreLabel.invalidate();
         }
 
-        // タイマー表示を更新する
         function updateTimer() {
             timerLabel.text = `${remainingTime}`;
             timerLabel.invalidate();
@@ -165,32 +155,7 @@ exports.main = (param) => {
         var fukidashi01 = "/assets/images/fukidashi_bw01.png";
         //const fukidashi02 = "/assets/images/fukidashi_bw02.png"
         var exclamation = "/assets/images/mark_exclamation.png";
-        var pp_kmc = "/assets/images/pp_kmc.png";
-        var pp_ribbon = "/assets/images/pp_ribbon.png";
-        function generateKomeco() {
-            var komeco = new g.Sprite({
-            scene: scene,
-            src: scene.asset.getImage(pp_kmc),
-            x: game.width / 2 + 160,
-            y: game.height / 2 + 50,
-            anchorX: 0.5,
-            anchorY: 0.5,
-            scaleX: 0.75,
-            scaleY: 0.75
-        });
-        scene.append(komeco);
-        var ribbon = new g.Sprite({
-            scene: scene,
-            src: scene.asset.getImage(pp_ribbon),
-            x: komeco.x - 20,
-            y: komeco.y + 75,
-            anchorX: 0.5,
-            anchorY: 0.5,
-            scaleX: 0.75,
-            scaleY: 0.75
-        });
-        scene.append(ribbon);
-        }
+
         function comboBoost() {
             var kame = new g.Sprite({
             scene: scene,
@@ -340,12 +305,10 @@ exports.main = (param) => {
             if (remainingTime <= 0) {
                 bread.touchable = false;
             }
-          // 毎フレームで座標を確認し、画面外に出ていたらパンをシーンから取り除きます
             if (bread.x > g.game.width + 100) {
                 bread.destroy();
-            } // パンを右に動かし、パンの動きを表現します
+            }
             bread.x += 6;
-          // 変更をゲームに通知します
             bread.modified();
         });
         scene.append(bread);
@@ -387,14 +350,12 @@ exports.main = (param) => {
         var generate1 = scene.setInterval(createPan1, 600);
         var generate2 = scene.setInterval(createPan2, 600);
 
-        // 残り時間の更新
         const timer = scene.setInterval(() => {
             remainingTime--;
             if (remainingTime === 0) {
-                scene.clearInterval(timer); // タイマーの停止
+                scene.clearInterval(timer);
                 scene.clearInterval(generate1);
                 scene.clearInterval(generate2);
-                // 終了ロゴを表示
                 const finishLogo = new g.Sprite({
                     scene,
                     src: scene.asset.getImage("/assets/images/finish.png"),
@@ -407,7 +368,6 @@ exports.main = (param) => {
                 scene.append(finishLogo);
                 seFinish.play();
 
-                // エンディングシーンへと遷移
                 scene.setTimeout(() => {
                     game.replaceScene(endingScene);
                 }, 3000);
@@ -430,14 +390,12 @@ exports.main = (param) => {
         ],
     });
     endingScene.onLoad.addOnce(() => {
-        // スコア用フォントの作成
         const font = new g.BitmapFont({
             scene: endingScene,
             src: endingScene.asset.getImage("/assets/fonts/font-number-large.png"),
             glyphInfo: endingScene.asset.getJSONContent("/assets/fonts/font-number-large_glyphs.json"),
         });
 
-        // スコア表示用のパネル表示
         const resultPanel = new g.Sprite({
             scene: endingScene,
             src: endingScene.asset.getImage("/assets/ending/result.png"),
@@ -448,7 +406,6 @@ exports.main = (param) => {
         });
         endingScene.append(resultPanel);
 
-        // スコア結果表示エンティティの作成
         const resultScoreLabel = new g.Label({
             scene: endingScene,
             font,
