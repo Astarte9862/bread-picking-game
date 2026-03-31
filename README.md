@@ -56,4 +56,6 @@ Akashic Engineで制作したカジュアルゲームです。
 
 ## 📸 Screenshot
 
-※ここにゲーム画面のスクリーンショットを追加予定
+### Gameplay
+
+![Gameplay](docs/play.png)
