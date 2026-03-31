@@ -140,26 +140,35 @@ exports.main = (param) => {
             comboLabel.invalidate();
         }
 
-        var bu_ru = "/assets/images/pan_bour_bu-ru.png";
-        var cheese_pan = "/assets/images/bread_cheese_pan.png";
+        const TOP_LANE_Y = 200;
+        const BOTTOM_LANE_Y = 550;
+        const BREAD_SPEED = 6;
+        const BONUS_BREAD_SPEED = 15;
+        const SPAWN_INTERVAL_MS = 600;
+        const BONUS_SPAWN_TIME_MS = 42000;
+        const EXCLAMATION_DISPLAY_MS = 1000;
+        const FINISH_DELAY_MS = 3000;
+
+        var breadRoll = "/assets/images/pan_bour_bu-ru.png";
+        var cheeseBread = "/assets/images/bread_cheese_pan.png";
         var yorkshire = "/assets/images/pan_yorkshire_pudding.png";
-        var harinezumi = "/assets/images/pan_harinezumi.png";
-        var choco_korone = "/assets/images/food_choco_korone.png";
-        var shiopan = "/assets/images/pan_shiopan.png";
-        var agepan = "/assets/images/pan_agepan.png";
+        var hedgehogBread = "/assets/images/pan_harinezumi.png";
+        var chocoKorone = "/assets/images/food_choco_korone.png";
+        var saltBread = "/assets/images/pan_shiopan.png";
+        var friedBread = "/assets/images/pan_agepan.png";
         //const raisin_pan = "/assets/images/raisin_pan.png"
-        var yakisobapan = "/assets/images/food_yakisobapan.png";
+        var yakisobaBread = "/assets/images/food_yakisobapan.png";
         //const bacon_epi = "/assets/images/pan_bacon_epi.png"
         //const maritozzo = "/assets/images/sweets_maritozzo.png"
-        var kame_pan = "/assets/images/pan_kame.png";
+        var bonusBreadImage = "/assets/images/pan_kame.png";
         var fukidashi01 = "/assets/images/fukidashi_bw01.png";
         //const fukidashi02 = "/assets/images/fukidashi_bw02.png"
         var exclamation = "/assets/images/mark_exclamation.png";
 
-        function comboBoost() {
-            var kame = new g.Sprite({
+        function spawnBonusBread() {
+            var bonusBread = new g.Sprite({
             scene: scene,
-            src: scene.asset.getImage(kame_pan),
+            src: scene.asset.getImage(bonusBreadImage),
             x: game.width - game.width - 500,
             y: game.height / 2,
             anchorX: 0.5,
@@ -167,8 +176,8 @@ exports.main = (param) => {
             scaleX: 0.2,
             scaleY: 0.2
         });
-            kame.touchable = true;
-            kame.pointDown.add(function () {
+            bonusBread.touchable = true;
+            bonusBread.pointDown.add(function () {
             sePico.play();
             score = 100 + combo * 2;
             game.vars.gameState.score += score;
@@ -177,17 +186,18 @@ exports.main = (param) => {
                 combo = 50;
             }
             updateScoreLabel();
-            kame.destroy();
+            bonusBread.destroy();
             updateComboLabel();
         });
-            kame.onUpdate.add(function () {
-            if (kame.x > g.game.width) {
-                kame.destroy();
+            bonusBread.onUpdate.add(function () {
+            if (bonusBread.x > g.game.width) {
+                bonusBread.destroy();
             }
-            kame.x += 15;
-            kame.modified();
+            bonusBread.x += BONUS_BREAD_SPEED;
+            bonusBread.modified();
         });
-        scene.append(kame);
+        scene.append(bonusBread);
+
         var mark_exclamation = new g.Sprite({
             scene: scene,
             src: scene.asset.getImage(exclamation),
@@ -201,8 +211,9 @@ exports.main = (param) => {
         scene.append(mark_exclamation);
         scene.setTimeout(function () {
         mark_exclamation.destroy();
-        }, 1000);
+        }, EXCLAMATION_DISPLAY_MS);
         }
+
         function generateFukidashi() {
             var fukidashi = new g.Sprite({
             scene: scene,
@@ -216,19 +227,39 @@ exports.main = (param) => {
         });
         scene.append(fukidashi);
         }
+
+        const topLaneBreads = [
+            breadRoll,
+            cheeseBread,
+            yorkshire,
+            hedgehogBread
+        ];
+
+        const bottomLaneBreads = [
+            chocoKorone,
+            saltBread,
+            friedBread,
+            yakisobaBread
+        ];
+
+        const allBreads = [
+            ...topLaneBreads,
+            ...bottomLaneBreads
+        ];
+
         var score = 0;
-        var need = null;
-        if (need == null) {
-        generateKomeco();
-        scene.setTimeout(comboBoost, 42000);
+        var targetBread = null;
+        if (targetBread == null) {
+        scene.setTimeout(spawnBonusBread, BONUS_SPAWN_TIME_MS);
         generateFukidashi();
-        eatIWant();
+        selectNextTargetBread();
         }
-        function whatIWant(want) {
+
+        function showTargetBread(image) {
             generateFukidashi();
             var pan = new g.Sprite({
             scene: scene,
-            src: scene.asset.getImage(want),
+            src: scene.asset.getImage(image),
             x: game.width / 2 - 20,
             y: game.height / 2 - 15 - 20,
             anchorX: 0.5,
@@ -238,49 +269,21 @@ exports.main = (param) => {
         });
         scene.append(pan);
         }
-        function eatIWant() {
-            var rand = Math.floor(g.game.localRandom.generate() * 8);
-            switch (rand) {
-            case 0:
-                whatIWant(bu_ru);
-                need = bu_ru;
-                break;
-            case 1:
-                whatIWant(cheese_pan);
-                need = cheese_pan;
-                break;
-            case 2:
-                whatIWant(yorkshire);
-                need = yorkshire;
-                break;
-            case 3:
-                whatIWant(harinezumi);
-                need = harinezumi;
-                break;
-            case 4:
-                whatIWant(choco_korone);
-                need = choco_korone;
-                break;
-            case 5:
-                whatIWant(shiopan);
-                need = shiopan;
-                break;
-            case 6:
-                whatIWant(agepan);
-                need = agepan;
-                break;
-            case 7:
-                whatIWant(yakisobapan);
-                need = yakisobapan;
-                break;
-            }
+
+        function selectNextTargetBread() {
+            const randomIndex = Math.floor(
+                g.game.localRandom.generate() * allBreads.length
+            );
+            targetBread = allBreads[randomIndex];
+            showTargetBread(targetBread);
         }
-        function createBread(image, Y) {
+
+        function createBread(image, yPosition) {
             var bread = new g.Sprite({
             scene: scene,
             src: scene.asset.getImage(image),
             x: game.width - game.width - 200,
-            y: Y,
+            y: yPosition,
             anchorX: 0.5,
             anchorY: 0.5,
             scaleX: 0.2,
@@ -288,15 +291,15 @@ exports.main = (param) => {
         });
         bread.touchable = true;
         bread.pointDown.add(function () {
-            if (image == need) {
+            if (image == targetBread) {
                 sePico.play();
                 score = 100 + combo * 2;
                 game.vars.gameState.score += score;
                 combo++;
                 updateScoreLabel();
                 bread.destroy();
-                eatIWant();
-            } else if (image != need) {
+                selectNextTargetBread();
+            } else if (image != targetBread) {
                 combo = 0;
             }
             updateComboLabel();
@@ -308,47 +311,29 @@ exports.main = (param) => {
             if (bread.x > g.game.width + 100) {
                 bread.destroy();
             }
-            bread.x += 6;
+            bread.x += BREAD_SPEED;
             bread.modified();
         });
         scene.append(bread);
         }
-        var createPan1 = function createPan1() {
-            var random = Math.floor(g.game.localRandom.generate() * 4);
-            switch (random) {
-            case 0:
-                createBread(bu_ru, 200);
-                break;
-            case 1:
-                createBread(cheese_pan, 200);
-                break;
-            case 2:
-                createBread(yorkshire, 200);
-                break;
-            case 3:
-                createBread(harinezumi, 200);
-                break;
-            }
-        };
-        var createPan2 = function createPan2() {
-            var random2 = Math.floor(g.game.localRandom.generate() * 4);
-            switch (random2) {
-            case 0:
-                createBread(choco_korone, 550);
-                break;
-            case 1:
-                createBread(shiopan, 550);
-                break;
-            case 2:
-                createBread(agepan, 550);
-                break;
-            case 3:
-                createBread(yakisobapan, 550);
-                break;
-            }
-        };
-        var generate1 = scene.setInterval(createPan1, 600);
-        var generate2 = scene.setInterval(createPan2, 600);
+
+        var spawnTopLaneBread = function spawnTopLaneBread() {
+            const randomIndex = Math.floor(
+                g.game.localRandom.generate() * topLaneBreads.length
+            );
+
+            createBread(topLaneBreads[randomIndex], TOP_LANE_Y);
+        }
+
+        var spawnBottomLaneBread = function spawnBottomLaneBread() {
+            const randomIndex = Math.floor(
+                g.game.localRandom.generate() * bottomLaneBreads.length
+            );
+
+            createBread(bottomLaneBreads[randomIndex], BOTTOM_LANE_Y);
+        }
+        var generate1 = scene.setInterval(spawnTopLaneBread, SPAWN_INTERVAL_MS);
+        var generate2 = scene.setInterval(spawnBottomLaneBread, SPAWN_INTERVAL_MS);
 
         const timer = scene.setInterval(() => {
             remainingTime--;
@@ -370,7 +355,7 @@ exports.main = (param) => {
 
                 scene.setTimeout(() => {
                     game.replaceScene(endingScene);
-                }, 3000);
+                }, FINISH_DELAY_MS);
             }
             updateTimer();
         }, 1000);
